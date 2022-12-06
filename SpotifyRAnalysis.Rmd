@@ -1,0 +1,273 @@
+---
+output:
+  html_document:
+    theme:
+      bg: '#121212'
+      fg: white
+  pdf_document: default
+---
+
+Import Libraries
+```{r}
+library(devtools)
+library(spotifyr)
+library(tidyverse)
+library(knitr)
+library(dplyr)
+library(ggplot2)
+library(ggridges)
+library(geniusr)
+library(tidytext)
+```
+
+
+
+Accessing Spotify API
+```{r}
+Sys.setenv(SPOTIFY_CLIENT_ID = '94671b31e007451a9d8caa8443b46dc8')
+Sys.setenv(SPOTIFY_CLIENT_SECRET = '501a6f69715b46679a9bb4a7fa578210')
+access_token <- get_spotify_access_token()
+```
+
+
+
+Read In Playlists Of Top Hits From 2015 through 2022
+```{r}
+topOf2015 <- get_playlist_audio_features("Spotify", "37i9dQZF1DX9ukdrXQLJGZ")
+topOf2015$Year <- 2015
+topOf2016 <- get_playlist_audio_features("Spotify", "37i9dQZF1DX8XZ6AUo9R4R")
+topOf2016$Year <- 2016
+topOf2017 <- get_playlist_audio_features("Spotify", "37i9dQZF1DWTE7dVUebpUW")
+topOf2017$Year <- 2017
+topOf2018 <- get_playlist_audio_features("Spotify", "37i9dQZF1DXe2bobNYDtW8")
+topOf2018$Year <- 2018
+topOf2019 <- get_playlist_audio_features("Spotify", "37i9dQZF1DWVRSukIED0e9")
+topOf2019$Year <- 2019
+topOf2020 <- get_playlist_audio_features("Spotify", "37i9dQZF1DX7Jl5KP2eZaS")
+topOf2020$Year <- 2020
+topOf2021 <- get_playlist_audio_features("Spotifyn", "5GhQiRkGuqzpWZSE7OU4Se")
+topOf2021$Year <- 2021
+topOf2022 <- get_playlist_audio_features("Spotify", "37i9dQZF1DXbJMiQ53rTyJ")
+topOf2022$Year <- 2022
+
+topOfPastDecade <- rbind(topOf2015, topOf2016, topOf2017, topOf2018, topOf2019, topOf2020, topOf2021, topOf2022)
+```
+
+
+
+Plot Duration Distribution From 2015 through 2022
+```{r}
+durationPlotPastDecade <- topOfPastDecade %>%
+  ggplot(aes(track.duration_ms/1000, as.factor(Year))) + 
+  geom_density_ridges(scale = 3.2,
+                      colour=alpha("#121212", 1), rel_min_height = 0.01,
+                      size = 2, fill = "#57acdc", alpha = 1) +
+  theme(panel.background = element_rect(fill = '#121212', color = '#121212'),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+        axis.text.y = element_text(color="#57acdc", 
+                                   size=12, family = "Arial Bold"), 
+        axis.text.x = element_text(color="#57acdc", 
+                                   size=12, family = "Arial Bold"), 
+        axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)), 
+        axis.title.x = element_text(margin = margin(t = 20, r = 0, b = , l = 0))) +
+  xlab("Duration (seconds)") + ylab("Release Year") + theme(text = element_text(color = "#57acdc", size = 15, family = "Arial Bold"),  plot.margin = margin(1.5, 1.5, 1.5, 1.5, "cm")) +
+  theme(plot.background = element_rect(fill = "#121212"), legend.background = element_rect(fill = "#121212") ) 
+
+durationPlotPastDecade
+```
+
+
+
+Plot Valence Difference Between 2000 and 2022
+```{r}
+topOf2000 <- get_playlist_audio_features("Spotify", "37i9dQZF1DWUZv12GM5cFk")
+topOf2000$Year <- 2000
+
+valence2000_2022 <- rbind(topOf2000, topOf2022)
+
+valencePlotPastDecade <- valence2000_2022 %>%
+  ggplot(aes(valence, as.factor(Year))) + 
+  geom_density_ridges(scale = 3.2,
+                      colour=alpha("#121212", 1), rel_min_height = 0.01,
+                      size = 2, fill = "#57Dcbe", alpha = 1) +
+  theme(panel.background = element_rect(fill = '#121212', color = '#121212'),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+        axis.text.y = element_text(color="#57Dcbe", 
+                                   size=12, family = "Arial Bold"), 
+        axis.text.x = element_text(color="#57Dcbe", 
+                                   size=12, family = "Arial Bold"), 
+        axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)), 
+        axis.title.x = element_text(margin = margin(t = 20, r = 0, b = , l = 0))) +
+  xlab("Valence") + ylab("Release Year") + theme(text = element_text(color = "#57Dcbe", size = 15, family = "Arial Bold"),  plot.margin = margin(1.5, 1.5, 1.5, 1.5, "cm")) +
+  theme(plot.background = element_rect(fill = "#121212"), legend.background = element_rect(fill = "#121212") ) 
+
+valencePlotPastDecade
+```
+
+
+
+
+Plot Danceability From 2015 through 2022
+```{r}
+#valencePlotPastDecade <- valence2000_2022 %>%
+danceabilityPlotPastDecade <-topOfPastDecade%>% ggplot(aes(danceability, as.factor(Year))) + 
+  geom_density_ridges_gradient(scale = 3.2,
+                      colour=alpha("#121212", 1), rel_min_height = 0.01,
+                      size = 2, fill = "#E91E63", alpha = 1) +
+  theme(panel.background = element_rect(fill = '#121212', color = '#121212'),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+        axis.text.y = element_text(color="#E91E63", 
+                                   size=12, family = "Arial Bold"), 
+        axis.text.x = element_text(color="#E91E63", 
+                                   size=12, family = "Arial Bold"), 
+        axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)), 
+        axis.title.x = element_text(margin = margin(t = 20, r = 0, b = , l = 0))) +
+  xlab("Danceability") + ylab("Release Year") + theme(text = element_text(color = "#E91E63", size = 15, family = "Arial Bold"),  plot.margin = margin(1.5, 1.5, 1.5, 1.5, "cm")) +
+  theme(plot.background = element_rect(fill = "#121212"), legend.background = element_rect(fill = "#121212") ) 
+
+danceabilityPlotPastDecade
+```
+
+
+
+
+Access Genius API
+```{r}
+Sys.setenv(GENIUS_API_TOKEN = '_agVKgO1niNZsa_ULiKekTLfQ6tqHOKTfPPJ8VJRYNm0zuUd59BiS063XV5IPYwG')
+genius_token()
+```
+
+
+
+
+Lyrics Analysis For Billboard Hot 100 2010
+```{r}
+BillboardHot100 <- get_playlist_audio_features("Billboard", "6UeSakyzhiEt4NB3UAd6NQ")
+BillboardHot100$track.name[8] <- "Lift Me Up"
+
+
+billboardLyrics <- data.frame(matrix(ncol = 3, nrow = 0))
+colnames(billboardLyrics) <- c("track.name", "word", "geniusSongID")
+curBillboardLyrics <- data.frame()
+
+billboardLyricsFunction <- function(i){
+  
+  if ( nrow(BillboardHot100[[28]][[i]]) == 1 ) {
+    curBillboardlyrics <- get_lyrics_id(as.character((search_song(BillboardHot100$track.name[i]) %>%filter(artist_name == BillboardHot100[[28]][[i]]$name[1]))$song_id[1]))
+  }
+  
+  if ( nrow(BillboardHot100[[28]][[i]]) == 2 ) {
+    curBillboardlyrics <-  get_lyrics_id(as.character(((search_song(BillboardHot100$track.name[i]) %>%filter(artist_name == paste(BillboardHot100[[28]][[i]]$name[1], BillboardHot100[[28]][[i]]$name[2], sep = " & " )))$song_id[1]   )))
+  }
+  
+  curBillboardlyrics <- curBillboardlyrics %>% unnest_tokens(word, line)
+  data(stop_words)
+  curBillboardlyrics <- curBillboardlyrics %>% anti_join(stop_words)
+  curBillboardlyrics <- data.frame(track.name = curBillboardlyrics$song_name, word = curBillboardlyrics$word, geniusSongID = curBillboardlyrics$song_id)
+  billboardLyrics <- rbind(billboardLyrics, curBillboardlyrics)
+  return(billboardLyrics)
+}
+
+for (i in 1:100) {
+  try(billboardLyrics <- billboardLyricsFunction(i), silent = TRUE)
+}
+
+billboardLyrics$track.name <- tolower(billboardLyrics$track.name)
+BillboardHot100$track.name <- tolower(BillboardHot100$track.name)
+
+billboardLyrics <- left_join(billboardLyrics, BillboardHot100, by = "track.name")
+billboardLyrics <- billboardLyrics %>% inner_join(get_sentiments("bing"))
+
+billboardLyricsSummary <- billboardLyrics %>% summarise(positiveWords = sum(sentiment == "positive"), negativeWords = sum(sentiment == "negative"), posPercentage = positiveWords / (positiveWords + negativeWords), negPercentage = negativeWords / (positiveWords + negativeWords))
+head(billboardLyricsSummary)
+
+```
+
+
+
+
+Lyrics Analysis For Billboard Hot 100 2010
+```{r}
+Top100of2010 <- get_playlist_audio_features("Wicked Dreamer", "4aUY170nZ3mhkzMpTAXDv2")
+
+billboard2010Lyrics <- data.frame(matrix(ncol = 3, nrow = 0))
+colnames(billboard2010Lyrics) <- c("track.name", "word", "geniusSongID")
+curBillboardLyrics <- data.frame()
+
+billboard2010LyricsFunction <- function(i){
+  
+  if ( nrow(Top100of2010[[28]][[i]]) == 1 ) {
+    curBillboardlyrics <- get_lyrics_id(as.character((search_song(Top100of2010$track.name[i]) %>%filter(artist_name == Top100of2010[[28]][[i]]$name[1]))$song_id[1]))
+  }
+  
+  if ( nrow(Top100of2010[[28]][[i]]) == 2 ) {
+    curBillboardlyrics <-  get_lyrics_id(as.character(((search_song(Top100of2010$track.name[i]) %>%filter(artist_name == paste(Top100of2010[[28]][[i]]$name[1], Top100of2010[[28]][[i]]$name[2], sep = " & " )))$song_id[1]   )))
+  }
+  
+  curBillboardlyrics <- curBillboardlyrics %>% unnest_tokens(word, line)
+  data(stop_words)
+  curBillboardlyrics <- curBillboardlyrics %>% anti_join(stop_words)
+  curBillboardlyrics <- data.frame(track.name = curBillboardlyrics$song_name, word = curBillboardlyrics$word, geniusSongID = curBillboardlyrics$song_id)
+  billboard2010Lyrics <- rbind(billboard2010Lyrics, curBillboardlyrics)
+  return(billboard2010Lyrics)
+}
+
+for (i in 1:100) {
+  try(billboard2010Lyrics <- billboard2010LyricsFunction(i), silent = TRUE)
+}
+
+billboard2010Lyrics$track.name <- tolower(billboard2010Lyrics$track.name)
+Top100of2010$track.name <- tolower(Top100of2010$track.name)
+
+billboard2010Lyrics <- left_join(billboard2010Lyrics, Top100of2010, by = "track.name")
+billboard2010Lyrics <- billboard2010Lyrics %>% inner_join(get_sentiments("bing"))
+
+billboardLyrics$Billboard_Year <- "2022"
+billboard2010Lyrics$Billboard_Year <- "2010"
+totalData <- rbind(billboardLyrics, billboard2010Lyrics)
+
+billboard2010LyricsSummary <- billboard2010Lyrics %>% summarise(positiveWords = sum(sentiment == "positive"), negativeWords = sum(sentiment == "negative"), posPercentage = positiveWords / (positiveWords + negativeWords), negPercentage = negativeWords / (positiveWords + negativeWords))
+head(billboard2010LyricsSummary)
+```
+
+
+Combine Two Summaries From 2010 and 2022 Billboard Hot 100 Songs Lyrics Analysis
+```{r}
+Year <- c(rep("2010" , 2) , rep("2022" , 2) )
+Sentiment <- rep(c("Positive" , "Negative") , 2)
+Percentage <- c(0.5228659, 0.4771341, 0.3147662, 0.6852338)
+finalSummary <- data.frame(Year,Sentiment,Percentage)
+```
+
+
+
+Visualising the share of negative words in lyrics in 2010 and 2022
+```{r}
+finalSummaryPlot <- finalSummary %>% 
+  ggplot(aes(x = as.factor(Year), y = Percentage, fill = Sentiment)) + 
+  geom_bar(stat="identity", position=position_dodge()) +
+  theme(panel.background = element_rect(fill = '#121212', color = '#121212'),
+        panel.grid.major = element_blank(), panel.grid.minor = element_blank(), 
+        axis.text.y = element_text(color="white", 
+                                   size=12, family = "Arial Bold"), 
+        axis.text.x = element_text(color="white", 
+                                   size=12, family = "Arial Bold"), 
+        axis.title.y = element_text(margin = margin(t = 0, r = 20, b = 0, l = 0)), 
+        axis.title.x = element_text(margin = margin(t = 20, r = 0, b = , l = 0))) +
+  xlab("Year") + ylab("Percentage") + theme(text = element_text(color = "white", size = 15, family = "Arial Bold"),  plot.margin = margin(1, 1, 1, 1, "cm")) +
+  theme(plot.background = element_rect(fill = "#121212"), legend.background = element_rect(fill = "#121212") ) +
+  scale_fill_manual(values = c("Negative" = "#5727b0", "Positive" = "#ffea00"))
+
+finalSummaryPlot
+```
+
+
+
+```{r}
+
+allOut2020s <- get_playlist_audio_features("Vincent Balatero", "3aWW9eDfPZOy11QUMpqm0D")
+valencePopularity <- allOut2020s %>% ggplot(aes(x = acousticness , y = track.popularity)) + geom_point() + geom_smooth()
+valencePopularity
+```
+
+
